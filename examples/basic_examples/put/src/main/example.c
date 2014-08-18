@@ -62,7 +62,8 @@ main(int argc, char* argv[])
 
 	// Create an as_record object with two bins with different value types. By
 	// using as_record_inita(), we won't need to destroy the record if we only
-	// set bins using as_record_set_int64() and as_record_set_str().
+	// set bins using as_record_set_int64(), as_record_set_str(), and
+	// as_record_set_nil().
 	as_record rec;
 	as_record_inita(&rec, 2);
 	as_record_set_int64(&rec, "test-bin-1", 1234);
@@ -99,6 +100,29 @@ main(int argc, char* argv[])
 
 	// Write the record to the database. This will change the type and value of
 	// test-bin-2, will add test-bin-3, and will leave test-bin-one unchanged.
+	if (aerospike_key_put(&as, &err, NULL, &g_key, &rec) != AEROSPIKE_OK) {
+		LOG("aerospike_key_put() returned %d - %s", err.code, err.message);
+		example_cleanup(&as);
+		exit(-1);
+	}
+
+	LOG("write succeeded");
+
+	if (! example_read_test_record(&as)) {
+		example_cleanup(&as);
+		exit(-1);
+	}
+
+	// Generate another as_record object to write.
+	as_record_inita(&rec, 1);
+	as_record_set_nil(&rec, "test-bin-3");
+
+	// Log its contents.
+	LOG("as_record object to write to database:");
+	example_dump_record(&rec);
+
+	// Write the record to the database. This will remove test-bin-3 and
+	// will leave test-bin-1 and test-bin-2 unchanged.
 	if (aerospike_key_put(&as, &err, NULL, &g_key, &rec) != AEROSPIKE_OK) {
 		LOG("aerospike_key_put() returned %d - %s", err.code, err.message);
 		example_cleanup(&as);

@@ -73,9 +73,7 @@ as_status as_error_fromrc(as_error * err, cl_rv rc)
 		ERR_ASSIGN(AEROSPIKE_ERR_NO_XDR);
 		break;
 	case CITRUSLEAF_FAIL_UNAVAILABLE:
-		// Yes, "unavailable" means a scan with cluster-change flag set won't
-		// start, because migrations are happening.
-		ERR_ASSIGN(AEROSPIKE_ERR_CLUSTER_CHANGE);
+		ERR_ASSIGN(AEROSPIKE_ERR_CLUSTER);
 		break;
 	case CITRUSLEAF_FAIL_INCOMPATIBLE_TYPE:
 		ERR_ASSIGN(AEROSPIKE_ERR_BIN_INCOMPATIBLE_TYPE);
@@ -96,14 +94,61 @@ as_status as_error_fromrc(as_error * err, cl_rv rc)
 	case CITRUSLEAF_FAIL_KEY_MISMATCH:
 		ERR_ASSIGN(AEROSPIKE_ERR_RECORD_KEY_MISMATCH);
 		break;
-
-	// TODO - just guessing from here on down ... fill out correctly.
-
 	case CITRUSLEAF_FAIL_SCAN_ABORT:
 		ERR_ASSIGN(AEROSPIKE_ERR_SCAN_ABORTED);
 		break;
 	case CITRUSLEAF_FAIL_UNSUPPORTED_FEATURE:
 		ERR_ASSIGN(AEROSPIKE_ERR_UNSUPPORTED_FEATURE);
+		break;
+	case CITRUSLEAF_QUERY_END:
+		break;
+	case CITRUSLEAF_SECURITY_NOT_SUPPORTED:
+		ERR_ASSIGN(AEROSPIKE_SECURITY_NOT_SUPPORTED);
+		break;
+	case CITRUSLEAF_SECURITY_NOT_ENABLED:
+		ERR_ASSIGN(AEROSPIKE_SECURITY_NOT_ENABLED);
+		break;
+	case CITRUSLEAF_SECURITY_SCHEME_NOT_SUPPORTED:
+		ERR_ASSIGN(AEROSPIKE_SECURITY_SCHEME_NOT_SUPPORTED);
+		break;
+	case CITRUSLEAF_INVALID_COMMAND:
+		ERR_ASSIGN(AEROSPIKE_INVALID_COMMAND);
+		break;
+	case CITRUSLEAF_INVALID_FIELD:
+		ERR_ASSIGN(AEROSPIKE_INVALID_FIELD);
+		break;
+	case CITRUSLEAF_ILLEGAL_STATE:
+		ERR_ASSIGN(AEROSPIKE_ILLEGAL_STATE);
+		break;
+	case CITRUSLEAF_INVALID_USER:
+		ERR_ASSIGN(AEROSPIKE_INVALID_USER);
+		break;
+	case CITRUSLEAF_USER_ALREADY_EXISTS:
+		ERR_ASSIGN(AEROSPIKE_USER_ALREADY_EXISTS);
+		break;
+	case CITRUSLEAF_INVALID_PASSWORD:
+		ERR_ASSIGN(AEROSPIKE_INVALID_PASSWORD);
+		break;
+	case CITRUSLEAF_EXPIRED_PASSWORD:
+		ERR_ASSIGN(AEROSPIKE_EXPIRED_PASSWORD);
+		break;
+	case CITRUSLEAF_FORBIDDEN_PASSWORD:
+		ERR_ASSIGN(AEROSPIKE_FORBIDDEN_PASSWORD);
+		break;
+	case CITRUSLEAF_INVALID_CREDENTIAL:
+		ERR_ASSIGN(AEROSPIKE_INVALID_CREDENTIAL);
+		break;
+	case CITRUSLEAF_INVALID_ROLE:
+		ERR_ASSIGN(AEROSPIKE_INVALID_ROLE);
+		break;
+	case CITRUSLEAF_INVALID_PRIVILEGE:
+		ERR_ASSIGN(AEROSPIKE_INVALID_PRIVILEGE);
+		break;
+	case CITRUSLEAF_NOT_AUTHENTICATED:
+		ERR_ASSIGN(AEROSPIKE_NOT_AUTHENTICATED);
+		break;
+	case CITRUSLEAF_ROLE_VIOLATION:
+		ERR_ASSIGN(AEROSPIKE_ROLE_VIOLATION);
 		break;
 	case CITRUSLEAF_FAIL_INVALID_DATA:
 		ERR_ASSIGN(AEROSPIKE_ERR_SERVER);
@@ -111,9 +156,12 @@ as_status as_error_fromrc(as_error * err, cl_rv rc)
 	case CITRUSLEAF_FAIL_UDF_BAD_RESPONSE:
 		ERR_ASSIGN(AEROSPIKE_ERR_UDF);
 		break;
-    case CITRUSLEAF_FAIL_UDF_LUA_EXECUTION:
-        ERR_ASSIGN(AEROSPIKE_ERR_UDF); 
-        break; 
+    	case CITRUSLEAF_FAIL_UDF_LUA_EXECUTION:
+        	ERR_ASSIGN(AEROSPIKE_ERR_UDF);
+        	break; 
+    	case CITRUSLEAF_FAIL_LUA_FILE_NOTFOUND:
+        	ERR_ASSIGN(AEROSPIKE_ERR_LUA_FILE_NOT_FOUND);
+        	break;
 	case CITRUSLEAF_FAIL_INDEX_FOUND:
 		ERR_ASSIGN(AEROSPIKE_ERR_INDEX_FOUND);
 		break;
@@ -153,9 +201,6 @@ as_status as_error_fromrc(as_error * err, cl_rv rc)
 		if (rc < 0) {
 			// TODO - what about CITRUSLEAF_FAIL_ASYNCQ_FULL?
 			ERR_ASSIGN(AEROSPIKE_ERR_CLIENT);
-		}
-		else if (rc == ETIMEDOUT) {
-			ERR_ASSIGN(AEROSPIKE_ERR_TIMEOUT);
 		}
 		else {
 			ERR_ASSIGN(AEROSPIKE_ERR_SERVER);
@@ -368,7 +413,7 @@ void clbin_to_asrecord(cl_bin * bin, as_record * r)
 			break;
 		}
 		default: {
-			as_record_set_rawp(r, bin->bin_name, bin->object.u.blob, (uint32_t)bin->object.sz, true);
+			as_record_set_raw_typep(r, bin->bin_name, bin->object.u.blob, (uint32_t)bin->object.sz, (as_bytes_type)bin->object.type, true);
 			// the following completes the handoff of the value.
 			bin->object.free = NULL;
 			break;

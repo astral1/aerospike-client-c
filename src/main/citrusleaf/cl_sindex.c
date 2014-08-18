@@ -41,15 +41,6 @@
 
 #include "internal.h"
 
-
-extern int g_cl_turn_debug_on;
-
-/*
-static char * citrusleaf_secondary_index_fold_args(as_list * arglist) {
-    return "";
-}
-*/
-
 cl_rv citrusleaf_secondary_index_create(
     as_cluster * asc, const char * ns, const char * set,
     const char * iname, const char * binname, const char * type,
@@ -67,35 +58,13 @@ cl_rv citrusleaf_secondary_index_create(
         iname, binname, type
     );
 
-    int rc = citrusleaf_info_cluster(asc, ddl, response, true, /* check bounds */ true, 5000);
-
-    if ( rc != 0 ) return rc;
-
-    char * fail = strstr(*response,"FAIL:");
-    if ( fail != NULL ) {
-        fail = fail + 5;
-        char * end = strchr(fail,':');
-        if ( end != NULL ) {
-            *end     = '\0';
-            int code = atoi(fail);
-            return code; 
-        }
-        return CITRUSLEAF_FAIL_CLIENT;
-    }
-
-    return CITRUSLEAF_OK;
-}        
+    return citrusleaf_info_cluster(asc, ddl, response, true, /* check bounds */ true, 5000);
+}
 
 cl_rv citrusleaf_secondary_index_drop(as_cluster *asc, const char *ns, const char *indexname, char **response) {
 
     char ddl[1024];
     sprintf(ddl, "sindex-delete:ns=%s;indexname=%s", ns, indexname);
-    if ( citrusleaf_info_cluster(asc, ddl, response, true, /* check bounds */ true, 5000) ) {
-        INFO("[ERROR] sindex-drop: response: %s\n", *response);
-        return CITRUSLEAF_FAIL_CLIENT;
-    }
-    INFO("sindex-drop: response: %s\n", *response);
-    return CITRUSLEAF_OK;
-}        
-
-
+	
+	return citrusleaf_info_cluster(asc, ddl, response, true, /* check bounds */ true, 5000);
+}
